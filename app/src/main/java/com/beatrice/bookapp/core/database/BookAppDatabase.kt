@@ -4,8 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.beatrice.bookapp.catalogue.domain.Book
 
-@Database(entities = emptyArray(), version = 1)
+@Database(entities = [Book::class], version = 1)
 abstract class BookAppDatabase: RoomDatabase() {
     companion object{
         @Volatile
@@ -17,15 +18,12 @@ abstract class BookAppDatabase: RoomDatabase() {
                 instance = Room.databaseBuilder(
                     context.applicationContext,
                     BookAppDatabase::class.java,
-                    "mavuno-database"
+                    "Book-app-database"
                 )
                     .build()
                 INSTANCE = instance
             }
             return instance
         }
-        // Put your DAOs here
-
-
     }
 }
