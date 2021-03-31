@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.beatrice.bookapp.catalogue.domain.Book
+import androidx.room.TypeConverters
+import com.beatrice.bookapp.catalogue.data.dao.BookDao
+import com.beatrice.bookapp.catalogue.domain.model.Book
+import com.beatrice.bookapp.catalogue.domain.util.Converters
 
 @Database(entities = [Book::class], version = 1)
+@TypeConverters(Converters::class)
 abstract class BookAppDatabase: RoomDatabase() {
     companion object{
         @Volatile
@@ -26,4 +30,6 @@ abstract class BookAppDatabase: RoomDatabase() {
             return instance
         }
     }
+
+    abstract fun bookDao(): BookDao
 }
