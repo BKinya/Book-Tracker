@@ -65,7 +65,7 @@ class CatalogueFragment : Fragment() {
     private fun saveBooks() {
         val books = generateBooks()
         binding.addBookFab.setOnClickListener {
-            val randomIndex = Random.nextInt(books.size)
+            val randomIndex = Random.nextInt(0,books.size)
             val bookToSave = listOf(
                 books[randomIndex]
             )

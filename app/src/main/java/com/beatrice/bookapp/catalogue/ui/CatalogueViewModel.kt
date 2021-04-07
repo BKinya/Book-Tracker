@@ -8,6 +8,7 @@ import com.beatrice.bookapp.catalogue.domain.usecase.GetBooksUseCase
 import com.beatrice.bookapp.catalogue.domain.usecase.SaveBooksUseCase
 import com.beatrice.bookapp.core.util.Result
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class CatalogueViewModel(
@@ -28,13 +29,15 @@ class CatalogueViewModel(
     }
 
     fun fetchAllBooks() {
-        viewModelScope.launch(Dispatchers.IO) {
-            when (val result = getBooksUseCase.fetchAllBooks()) {
-                is Result.Success -> {
-                    _books.postValue(result.data)
-                }
-                is Result.Error -> {
-                    _error.postValue(result.error)
+        viewModelScope.launch {
+            getBooksUseCase.fetchAllBooks().collect { result ->
+                when(result){
+                    is Result.Success -> {
+                        _books.postValue(result.data)
+                    }
+                    is Result.Error -> {
+                        _error.postValue(result.error)
+                    }
                 }
             }
         }
