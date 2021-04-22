@@ -1,5 +1,6 @@
 package com.beatrice.bookapp.catalogue.ui
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,13 +8,15 @@ import com.beatrice.bookapp.catalogue.domain.model.Book
 import com.beatrice.bookapp.catalogue.domain.usecase.GetBooksUseCase
 import com.beatrice.bookapp.catalogue.domain.usecase.SaveBooksUseCase
 import com.beatrice.bookapp.core.util.Result
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class CatalogueViewModel(
     private val getBooksUseCase: GetBooksUseCase,
-    private val saveBooksUseCase: SaveBooksUseCase
+    private val saveBooksUseCase: SaveBooksUseCase,
+    private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
     private var _books = MutableLiveData<List<Book>>()
     val books get() = _books
@@ -27,9 +30,10 @@ class CatalogueViewModel(
     init {
         fetchAllBooks()
     }
+    // TODO: Change livedata to flow
 
     fun fetchAllBooks() {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcher) {
             getBooksUseCase.fetchAllBooks().collect { result ->
                 when(result){
                     is Result.Success -> {
@@ -44,7 +48,7 @@ class CatalogueViewModel(
     }
 
     fun saveBooks(books: List<Book>) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             when (val result = saveBooksUseCase.saveBooks(books)) {
                 is Result.Success -> {
                     _message.postValue(result.data)

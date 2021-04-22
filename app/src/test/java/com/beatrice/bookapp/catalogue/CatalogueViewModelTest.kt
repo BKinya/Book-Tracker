@@ -7,8 +7,11 @@ import com.beatrice.bookapp.catalogue.domain.usecase.GetBooksUseCase
 import com.beatrice.bookapp.catalogue.domain.usecase.SaveBooksUseCase
 import com.beatrice.bookapp.catalogue.ui.CatalogueViewModel
 import com.beatrice.bookapp.catalogue.util.*
+import com.beatrice.bookapp.core.util.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
@@ -26,57 +29,56 @@ class CatalogueViewModelTest {
     val testInstantTaskExecutorRule: TestRule = InstantTaskExecutorRule()
 
     @get:Rule
-    val testCoroutineRule = TestCoroutineRule()
+    var mainCoroutineRule = MainCoroutineRule()
 
     private val getBooksUseCase: GetBooksUseCase = mock(GetBooksUseCase::class.java)
     private val saveBooksUseCase: SaveBooksUseCase = mock(SaveBooksUseCase::class.java)
-    private val viewModel = CatalogueViewModel(getBooksUseCase, saveBooksUseCase)
 
-    @Mock
-    private lateinit var booksObserver: Observer<List<Book>>
-
-    @Mock
-    private lateinit var messageObserver: Observer<String>
+    private val viewModel = CatalogueViewModel(
+        getBooksUseCase,
+        saveBooksUseCase,
+        mainCoroutineRule.dispatcher
+    )
 
     @Test
-    fun `test get all books`() = runBlocking {
-        testCoroutineRule.runBlockingTest {
-            `when`(getBooksUseCase.fetchAllBooks()).thenReturn(testBookResult)
+    fun `test get all books`() = runBlockingTest {
+        mainCoroutineRule.runBlockingTest {
+            `when`(getBooksUseCase.fetchAllBooks()).thenReturn(flow { testBookResult })
 
             viewModel.fetchAllBooks()
-            viewModel.books.observeForever(booksObserver)
 
             verify(getBooksUseCase, atLeastOnce()).fetchAllBooks()
-            verify(booksObserver).onChanged(testBooks)
-            assertThat(viewModel.books.value, `is`(testBooks))
+            viewModel.books.observeOnce {books ->
+                assertThat(books, `is`(testBooks))
+            }
         }
     }
 
     @Test
-    fun `test get all books failed`(){
-        testCoroutineRule.runBlockingTest {
-            `when`(getBooksUseCase.fetchAllBooks()).thenReturn(testErrorResult)
+    fun `test get all books failed`() {
+        mainCoroutineRule.runBlockingTest {
+            `when`(getBooksUseCase.fetchAllBooks()).thenReturn(flow { testErrorResult })
 
             viewModel.fetchAllBooks()
-            viewModel.error.observeForever(messageObserver)
 
             verify(getBooksUseCase, atLeastOnce()).fetchAllBooks()
-            verify(messageObserver).onChanged(testError)
-            assertThat(viewModel.error.value, `is`(testError))
+            viewModel.error.observeOnce { error ->
+                assertThat(error, `is`(testError))
+            }
         }
     }
 
     @Test
-    fun `test save books`(){
-        testCoroutineRule.runBlockingTest {
+    fun `test save books`() {
+        runBlocking {
             `when`(saveBooksUseCase.saveBooks(anyList())).thenReturn(testMessageResult)
 
             viewModel.saveBooks(testBooks)
-            viewModel.message.observeForever(messageObserver)
 
             verify(saveBooksUseCase, atLeastOnce()).saveBooks(testBooks)
-            verify(messageObserver).onChanged(testMessage)
-            assertThat(viewModel.message.value, `is`(testMessage))
+            viewModel.message.observeOnce { message ->
+                assertThat(message, `is`(testMessage))
+            }
         }
     }
 }
