@@ -10,6 +10,7 @@ import com.beatrice.bookapp.catalogue.domain.usecase.SaveBooksUseCase
 import com.beatrice.bookapp.core.util.Result
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -18,7 +19,7 @@ class CatalogueViewModel(
     private val saveBooksUseCase: SaveBooksUseCase,
     private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
-    private var _books = MutableLiveData<List<Book>>()
+    private var _books = MutableStateFlow<Result<List<Book>>>(Result.Success(emptyList()))
     val books get() = _books
 
     private var _message = MutableLiveData<String>()
@@ -35,14 +36,7 @@ class CatalogueViewModel(
     fun fetchAllBooks() {
         viewModelScope.launch(dispatcher) {
             getBooksUseCase.fetchAllBooks().collect { result ->
-                when(result){
-                    is Result.Success -> {
-                        _books.postValue(result.data)
-                    }
-                    is Result.Error -> {
-                        _error.postValue(result.error)
-                    }
-                }
+                _books.value = result
             }
         }
     }

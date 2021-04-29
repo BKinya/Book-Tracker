@@ -5,11 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.addRepeatingJob
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.beatrice.bookapp.catalogue.domain.model.Book
 import com.beatrice.bookapp.catalogue.ui.adapter.BookAdapter
+import com.beatrice.bookapp.core.util.Result
 import com.beatrice.bookapp.databinding.FragmentCatalogueBinding
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.collect
 import org.koin.android.viewmodel.ext.android.viewModel
 import kotlin.random.Random
 
@@ -32,22 +36,29 @@ class CatalogueFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         linearLayoutManager = LinearLayoutManager(requireContext())
         binding.booksRecyclerview.layoutManager = linearLayoutManager
-        observeBooks()
+        collectBooks()
         observeMessage()
         observeError()
         saveBooks()
     }
 
-  private fun observeBooks() {
-        catalogueViewModel.books.observe(viewLifecycleOwner, { books ->
-            if (books.isNotEmpty()) {
-                booksAdapter = BookAdapter(books)
-                binding.booksRecyclerview.adapter = booksAdapter
-
-            } else {
-                showSnackBar("No books yet")
+    private fun collectBooks() {
+        viewLifecycleOwner.addRepeatingJob(Lifecycle.State.STARTED) {
+            catalogueViewModel.books.collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val books = result.data
+                        if (books.isNotEmpty()) {
+                            booksAdapter = BookAdapter(books)
+                            binding.booksRecyclerview.adapter = booksAdapter
+                        }
+                    }
+                    is Result.Error -> {
+                        showSnackBar(result.error!!)
+                    }
+                }
             }
-        })
+        }
     }
 
     private fun observeMessage() {
@@ -65,7 +76,7 @@ class CatalogueFragment : Fragment() {
     private fun saveBooks() {
         val books = generateBooks()
         binding.addBookFab.setOnClickListener {
-            val randomIndex = Random.nextInt(0,books.size)
+            val randomIndex = Random.nextInt(0, books.size)
             val bookToSave = listOf(
                 books[randomIndex]
             )
@@ -74,7 +85,7 @@ class CatalogueFragment : Fragment() {
     }
 
     private fun showSnackBar(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun generateBooks() = listOf(
@@ -87,8 +98,8 @@ class CatalogueFragment : Fragment() {
         ),
         Book(
             id = 2,
-            title = "The Big Picture",
-            author = listOf("Ben Carson"),
+            title = "INFJ 101",
+            author = listOf("Lindsay Rossum"),
             genre = null,
             hasRead = true
         ),
@@ -101,8 +112,8 @@ class CatalogueFragment : Fragment() {
         ),
         Book(
             id = 5,
-            title = "Rich Dad Poor Dad",
-            author = listOf("Robert Kiyosaki"),
+            title = "The Rise Of Magics",
+            author = listOf("Nora Roberst"),
             genre = null,
             hasRead = true
         ),
