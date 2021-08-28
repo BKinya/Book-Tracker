@@ -14,6 +14,5 @@ class BookApp : Application() {
     override fun onCreate() {
         super.onCreate()
         KoinHelper.initDI()
-
     }
 }

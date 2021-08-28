@@ -4,9 +4,9 @@ import com.beatrice.bookapp.catalogue.data.dao.BookDao
 import com.beatrice.bookapp.catalogue.domain.model.Book
 import com.beatrice.bookapp.catalogue.domain.repository.CatalogueRepository
 import com.beatrice.bookapp.core.util.Result
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 
 class CatalogueRepositoryImpl(
     private val bookDao: BookDao,

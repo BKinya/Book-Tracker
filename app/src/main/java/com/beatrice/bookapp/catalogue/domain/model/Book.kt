@@ -13,4 +13,3 @@ data class Book(
     val genre: String?, // TODO make this an enum
     val hasRead: Boolean
 )
-

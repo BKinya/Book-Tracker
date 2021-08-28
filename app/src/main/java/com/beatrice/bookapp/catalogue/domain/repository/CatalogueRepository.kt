@@ -8,5 +8,4 @@ interface CatalogueRepository {
     fun fetchAllBooks(): Flow<Result<List<Book>>>
 
     suspend fun saveBooks(books: List<Book>): Result<String>
-
 }

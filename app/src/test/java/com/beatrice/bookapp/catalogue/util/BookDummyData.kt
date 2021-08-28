@@ -22,3 +22,4 @@ val testMessageResult = Result.Success(data = testMessage)
 const val testError = "Failed"
 
 var testErrorResult = Result.Error(error = testError)
+

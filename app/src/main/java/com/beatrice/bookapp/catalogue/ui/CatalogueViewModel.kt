@@ -31,7 +31,6 @@ class CatalogueViewModel(
     init {
         fetchAllBooks()
     }
-    // TODO: Change livedata to flow
 
     fun fetchAllBooks() {
         viewModelScope.launch(dispatcher) {

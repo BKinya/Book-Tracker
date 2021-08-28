@@ -8,6 +8,5 @@ import org.koin.dsl.module
 val catalogueDataModules = module {
 
     factory { (get() as BookAppDatabase).bookDao() }
-    factory { CatalogueRepositoryImpl(get()) as CatalogueRepository }
+    factory<CatalogueRepository> { CatalogueRepositoryImpl(get()) }
 }
-

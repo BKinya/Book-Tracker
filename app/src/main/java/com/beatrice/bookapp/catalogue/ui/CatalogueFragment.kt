@@ -6,7 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.addRepeatingJob
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.beatrice.bookapp.catalogue.domain.model.Book
 import com.beatrice.bookapp.catalogue.ui.adapter.BookAdapter
@@ -14,7 +15,8 @@ import com.beatrice.bookapp.core.util.Result
 import com.beatrice.bookapp.databinding.FragmentCatalogueBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collect
-import org.koin.android.viewmodel.ext.android.viewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.random.Random
 
 class CatalogueFragment : Fragment() {
@@ -25,9 +27,10 @@ class CatalogueFragment : Fragment() {
     private lateinit var booksAdapter: BookAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentCatalogueBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
@@ -43,18 +46,20 @@ class CatalogueFragment : Fragment() {
     }
 
     private fun collectBooks() {
-        viewLifecycleOwner.addRepeatingJob(Lifecycle.State.STARTED) {
-            catalogueViewModel.books.collect { result ->
-                when (result) {
-                    is Result.Success -> {
-                        val books = result.data
-                        if (books.isNotEmpty()) {
-                            booksAdapter = BookAdapter(books)
-                            binding.booksRecyclerview.adapter = booksAdapter
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                catalogueViewModel.books.collect { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            val books = result.data
+                            if (books.isNotEmpty()) {
+                                booksAdapter = BookAdapter(books)
+                                binding.booksRecyclerview.adapter = booksAdapter
+                            }
                         }
-                    }
-                    is Result.Error -> {
-                        showSnackBar(result.error!!)
+                        is Result.Error -> {
+                            showSnackBar(result.error!!)
+                        }
                     }
                 }
             }
